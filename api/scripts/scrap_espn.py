@@ -3,7 +3,7 @@ import mysql.connector
 
 class SoccerNewsSpider(scrapy.Spider):
     name = 'soccer_news'
-    start_urls = ['https://www.espn.com/soccer/insider/story/_/id/39676325/how-klopp-guardiola-liverpool-man-city-changed-premier-league-tactical-style']
+    start_urls = ['https://www.espn.com/soccer/story/_/id/38196464/how-var-decisions-affect-premier-league-club-2023-24']
 
     def parse(self, response):
         # Extracting news article links
