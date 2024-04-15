@@ -1,3 +1,27 @@
+<template>
+  <div class="content">
+    <h1>Swift Search</h1>
+    <form>
+      <input type="text" class="search-box"/>
+      <button class="submit" type="submit" @click.prevent="getResults()">Go!</button>
+    </form>
+    <div class="loading" v-if="loading">Loading...</div>
+    <div class="toolbar" v-if="showResults">
+      <button>Sort by Relevance</button>
+      <button>Sort by Date</button>
+      <button>Filter by Date</button>
+    </div>
+    <div class="search-results" v-if="showResults">
+        <div v-for="result in results" :key="result.id" class="result">
+            <div>{{ result.site_name }}</div>
+            <a href="result.site_link" target="_blank">{{  result.site_link }}</a>
+            <div class="headline">{{  result.headline }}</div>
+            <div>{{  result.description }}</div>
+        </div>
+    </div>
+  </div>
+</template>
+
 <script>
 export default {
   data () {
@@ -69,30 +93,6 @@ export default {
   }
 }
 </script>
-
-<template>
-  <div class="content">
-    <h1>Swift Search</h1>
-    <form>
-      <input type="text" class="search-box"/>
-      <button class="submit" type="submit" @click.prevent="getResults()">Go!</button>
-    </form>
-    <div class="loading" v-if="loading">Loading...</div>
-    <div class="toolbar" v-if="showResults">
-      <button>Sort by Relevance</button>
-      <button>Sort by Date</button>
-      <button>Filter by Date</button>
-    </div>
-    <div class="search-results" v-if="showResults">
-        <div v-for="result in results" :key="result.id" class="result">
-            <div>{{ result.site_name }}</div>
-            <a href="result.site_link" target="_blank">{{  result.site_link }}</a>
-            <div class="headline">{{  result.headline }}</div>
-            <div>{{  result.description }}</div>
-        </div>
-    </div>
-  </div>
-</template>
 
 <style scoped lang="scss">
 .logo {
