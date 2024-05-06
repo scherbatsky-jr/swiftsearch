@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwiftSearch</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style lang="scss">
+        .input-form {
+            display: grid;
+            grid-template-columns: 5fr 1fr 7fr;
+            grid-gap: 1rem;
+            padding: 1rem;
+        }
+
+        .pagination {
+            display: flex;
+            margin: auto;
+
+            button {
+                border: none;
+                margin-right: 1rem;
+            }
+
+            .active-link {
+                border: 1px solid green;
+                border-radius: 0.25rem;
+            }
+        }
+
+        .url-desc {
+            width: 40rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .results {
+            margin: 1rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex flex-column h-100">
+        <div class="p-2 bg-primary mb-2 text-white">
+            <h1>Swift Search</h1>
+        </div>
+    <div class="input-form">
+        <input class="form-control" type="text" name="query" id="search-input" placeholder="Search..." required>
+        <button class="btn btn-primary" id="search-button">Search</button>
+        <select placeholder="Select algorithm type" id="search-type" class="form-control w-25">
+            <option value="/linear-search">Linear Search</option>
+            <option value="/inverted-index-search">Inverted Index Search</option>
+            <option value="/trie-search">Trie Search</option>
+        </select>
+    </div>
+    <div class="results-container d-flex flex-column">
+        <div class="spinner-border text-primary m-auto" id="loading" style="display: none;"></div>
+        <div id="results" class="d-flex flex-column results"></div>
+    </div>
+    </div>
+
+    <script>
+            const resultsContainer = document.getElementById('results-container');
+            const resultList = document.getElementById('results')
+            const searchButton = document.getElementById('search-button');
+            const searchInput = document.getElementById('search-input');
+            const loading = document.getElementById('loading')
+
+            function fetchResults(page = 1) {
+                loading.style.display = 'block';
+                resultList.innerHTML = ''
+                const searchType = document.getElementById('search-type').value
+                const query = searchInput.value;
+                fetch(searchType, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    search_query: query,
+                    page: page,
+                    per_page: 10
+                })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data, page);
+                })
+                .finally(() => {
+                    loading.style.display = 'none'
+                })
+                ;
+            }
+
+            function displayResults(data, currentPage) {
+                timeContainer = document.createElement('div')
+                timeContainer.className = 'd-flex flex-column mb-2'
+                timeContainer.innerHTML = `
+                    <div>Search completed in ${data.elapsed_time.toFixed(5)} second</div>
+                    <div>Current Memory Usage ${data.current_memory.toFixed(5)} MB</div>
+                    </div>Peak Memory Usage ${data.peak_memory.toFixed(5)} MB</div>
+                    <hr />
+                    `;
+                resultList.appendChild(timeContainer)
+
+                data.results.forEach(result => {
+                    const item = document.createElement('div');
+                    item.innerHTML = `<div class="d-flex flex-column align-items-start">
+                        <a href='${result.url}'>${result.title}</a>
+                        <div class="url-desc">${result.description}</div>
+                        <div>Published at: ${result.published_at} Source: ${result.source}</div>
+                        </div>
+                    `
+                    item.style.marginBottom = '2rem';
+                    item.style.paddingBottom = '0.5rem';
+                    item.style.borderBottom = '1px solid grey'
+                    resultList.appendChild(item);
+                });
+
+                addPagination(data.total_results, currentPage); 
+            }
+
+            function addPagination(totalResults, currentPage) {
+                const totalPages = Math.ceil(totalResults / 10);
+                const pagination = document.createElement('div')
+                pagination.className = 'pagination'
+
+                function createButton(page, text, isActive, isDisabled) {
+                    const button = document.createElement('button');
+                    button.textContent = text || page;
+                    if (isActive) button.classList.add('active-link');
+                    if (isDisabled) button.disabled = true;
+                    button.onclick = function () { fetchResults(page); };
+                    pagination.appendChild(button);
+                }
+
+                createButton(1, 'First', false, currentPage === 1);
+                createButton(currentPage - 1, 'Previous', false, currentPage === 1);
+
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+
+                // Adjust the start and end pages if they are out of bounds
+                if (startPage === 1) {
+                    endPage = Math.min(5, totalPages);
+                }
+                if (endPage === totalPages) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+
+                // Page number buttons
+                for (let i = startPage; i <= endPage; i++) {
+                    createButton(i, null, i === currentPage, false);
+                }
+
+                createButton(currentPage + 1, 'Next', false, currentPage === totalPages);
+                createButton(totalPages, 'Last', false, currentPage === totalPages);
+
+                resultList.appendChild(pagination)
+            }
+
+            searchButton.onclick = () => fetchResults();
+    </script>
+</body>
+</html>
